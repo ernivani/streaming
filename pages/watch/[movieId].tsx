@@ -12,7 +12,7 @@ const Watch: React.FC = () => {
 	return (
 		<div className="h-screen w-screen bg-black">
 			<div className="h-full w-full">
-				<VideoPlayer src={data?.videoUrl} />
+				<VideoPlayer src={data?.videoUrl} router={router} />
 			</div>
 		</div>
 	);
