@@ -41,11 +41,11 @@ export default async function handler(
 		if (req.method === "DELETE") {
 			const { currentUser } = await serverAuth(req, res);
 
-			const { movieId } = req.body;
+			const { movieId } = req.query;
 
 			const existingMovie = await prismadb.movie.findUnique({
 				where: {
-					id: movieId,
+					id: movieId as string,
 				},
 			});
 
@@ -63,7 +63,7 @@ export default async function handler(
 					email: currentUser.email || "",
 				},
 				data: {
-					favoriteIds: updatedFavoriteIds,
+					favoriteIds: updatedFavoriteIds as string[],
 				},
 			});
 
