@@ -1,10 +1,15 @@
 import React, { useEffect, useRef, useState } from "react";
-
 import {
-	PlayIcon,
-	PauseIcon,
-	ArrowLeftIcon,
-} from "@heroicons/react/24/outline";
+	FiPlay,
+	FiPause,
+	FiArrowLeft,
+	FiVolume2,
+	FiVolumeX,
+	FiMaximize2,
+	FiMinimize2,
+	FiChevronLeft,
+	FiChevronRight,
+} from "react-icons/fi";
 
 interface VideoPlayerProps {
 	src: string;
@@ -13,19 +18,74 @@ interface VideoPlayerProps {
 
 const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, router }) => {
 	const videoRef = useRef<HTMLVideoElement>(null);
-	const [playing, setPlaying] = useState(true);
+	const videoContainerRef = useRef<HTMLDivElement>(null);
+	const [playing, setPlaying] = useState(false);
+	const [progress, setProgress] = useState(0);
+	const [volume, setVolume] = useState(1);
+	const [fullscreen, setFullscreen] = useState(false);
+	const [blobUrl, setBlobUrl] = useState("");
+	const [loading, setLoading] = useState(true);
+
+	const [dimensions, setDimensions] = useState({
+		height: typeof window !== "undefined" ? window.innerHeight : 0,
+		width: typeof window !== "undefined" ? window.innerWidth : 0,
+	});
 
 	useEffect(() => {
-		const playPromise = videoRef.current?.play();
-		if (playPromise !== undefined) {
-			playPromise
-				.then(() => {
-					videoRef.current!.muted = false;
-				})
-				.catch((error) => {
-					setPlaying(false);
-				});
+		fetch(src)
+			.then((response) => {
+				if (!response.ok) {
+					throw new Error("Network response was not ok");
+				}
+				return response.blob();
+			})
+			.then((blob) => {
+				const blobURL = URL.createObjectURL(blob);
+				setBlobUrl(blobURL);
+				setLoading(false);
+			})
+			.catch((error) => console.error("Error:", error));
+	}, [src]);
+
+	useEffect(() => {
+		if (blobUrl && videoRef.current) {
+			videoRef.current
+				.play()
+				.then(() => setPlaying(true))
+				.catch((error) => console.error("Video play failed:", error));
 		}
+	}, [blobUrl]);
+
+	useEffect(() => {
+		const updateProgress = () => {
+			if (videoRef.current) {
+				setProgress(
+					(videoRef.current.currentTime / videoRef.current.duration) *
+						100
+				);
+			}
+		};
+		const interval = setInterval(updateProgress, 1000);
+		return () => clearInterval(interval);
+	}, []);
+
+	useEffect(() => {
+		function handleResize() {
+			setDimensions({
+				height: window.innerHeight,
+				width: window.innerWidth,
+			});
+		}
+
+		if (typeof window !== "undefined") {
+			window.addEventListener("resize", handleResize);
+		}
+
+		return () => {
+			if (typeof window !== "undefined") {
+				window.removeEventListener("resize", handleResize);
+			}
+		};
 	}, []);
 
 	const handlePlayPause = () => {
@@ -35,45 +95,140 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, router }) => {
 			} else {
 				videoRef.current.play();
 			}
-			setPlaying(!playing);
+
+			setPlaying((currentPlaying) => !currentPlaying);
 		}
 	};
 
+	const handleVolume = () => {
+		if (videoRef.current) {
+			setVolume((currentVolume) => {
+				const newVolume = currentVolume ? 0 : 1;
+				videoRef.current!.volume = newVolume;
+				return newVolume;
+			});
+		}
+	};
+
+	const handleFullscreen = () => {
+		if (videoContainerRef.current) {
+			if (fullscreen) {
+				document.exitFullscreen();
+			} else {
+				videoContainerRef.current.requestFullscreen();
+			}
+
+			setFullscreen((currentFullscreen) => !currentFullscreen);
+		}
+	};
+
+	const handleSkip = (amount: number) => {
+		if (videoRef.current) {
+			videoRef.current.currentTime += amount;
+		}
+	};
+
+	const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
+		const clickedValue =
+			e.nativeEvent.offsetX / e.currentTarget.offsetWidth;
+		if (videoRef.current) {
+			videoRef.current.currentTime =
+				clickedValue * videoRef.current.duration;
+		}
+	};
+
+	const handleContextMenu = (e: React.MouseEvent<HTMLVideoElement>) => {
+		e.preventDefault();
+	};
+
+	const handleDoubleClick = () => {
+		handleFullscreen();
+	};
+
+	const videoStyle = {
+		maxHeight: dimensions.height,
+		width: dimensions.width,
+	};
+
+	if (loading) {
+		return (
+			<div className="flex items-center justify-center h-screen ">
+				<div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-white" />
+			</div>
+		);
+	}
+
+	if (!blobUrl) {
+		return null;
+	}
+
 	return (
 		<div
-			className="flex items-center justify-center h-screen "
-			onClick={handlePlayPause}
+			className="relative flex items-center justify-center h-screen"
+			ref={videoContainerRef}
 		>
-			{/* pause button */}
-			<button
-				className="absolute left-0 m-4 p-2 bg-black bg-opacity-50 rounded-full bottom-0 cursor-pointer z-10"
-				onClick={handlePlayPause}
+			<div
+				className="relative bg-black w-full h-full"
+				onDoubleClick={handleDoubleClick}
 			>
-				{playing ? (
-					<PauseIcon className="w-6 h-6 text-white" />
-				) : (
-					<PlayIcon className="w-6 h-6 text-white" />
-				)}
-			</button>
-			{/* exit button */}
+				<video
+					onClick={handlePlayPause}
+					ref={videoRef}
+					onContextMenu={handleContextMenu}
+					className="absolute top-1/2 left-1/2 max-w-full max-h-full object-contain transform -translate-x-1/2 -translate-y-1/2"
+					src={blobUrl}
+					style={videoStyle}
+				/>
+			</div>
+
+			<div className="absolute bottom-0 bg-black bg-opacity-50 p-4 flex items-center w-full z-10">
+				<button className="p-2" onClick={handlePlayPause}>
+					{playing ? (
+						<FiPause className="w-6 h-6 text-white" />
+					) : (
+						<FiPlay className="w-6 h-6 text-white" />
+					)}
+				</button>
+				<button className="p-2" onClick={() => handleSkip(-10)}>
+					<FiChevronLeft className="w-6 h-6 text-white" />
+				</button>
+				<button className="p-2" onClick={() => handleSkip(10)}>
+					<FiChevronRight className="w-6 h-6 text-white" />
+				</button>
+				<button className="p-2 ml-auto" onClick={handleVolume}>
+					{volume ? (
+						<FiVolume2 className="w-6 h-6 text-white" />
+					) : (
+						<FiVolumeX className="w-6 h-6 text-white" />
+					)}
+				</button>
+				<button className="p-2" onClick={handleFullscreen}>
+					{fullscreen ? (
+						<FiMinimize2 className="w-6 h-6 text-white" />
+					) : (
+						<FiMaximize2 className="w-6 h-6 text-white" />
+					)}
+				</button>
+			</div>
+
 			<button
-				className="absolute left-0 m-4 p-2 bg-black bg-opacity-50 rounded-full top-0 cursor-pointer z-10"
+				className="absolute left-0 m-4 p-2 bg-black bg-opacity-50 rounded-full top-0 cursor-pointer z-20"
 				onClick={() => {
 					router.push("/");
 				}}
 			>
-				<ArrowLeftIcon className="w-6 h-6 text-white" />
+				<FiArrowLeft className="w-6 h-6 text-white" />
 			</button>
-			<video
-				ref={videoRef}
-				className="w-full h-full object-cover"
-				src={src}
-			/>
-			{!playing && (
-				<div className="absolute inset-0 flex items-center justify-center text-white text-4xl bg-black bg-opacity-50 ">
-					<PlayIcon className="w-10 h-10" />
-				</div>
-			)}
+
+			<div
+				onClick={handleProgressClick}
+				className="w-full bg-gray-500 h-2 absolute bottom-0 z-10 cursor-pointer"
+			>
+				<div
+					style={{ width: `${progress}%` }}
+					className="bg-white h-2"
+				/>
+			</div>
 		</div>
 	);
 };
