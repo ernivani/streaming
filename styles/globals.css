@@ -3,13 +3,22 @@
 @tailwind utilities;
 
 body {
-	@apply bg-zinc-900 h-full overflow-x-hidden;
+    @apply bg-zinc-900 h-full overflow-x-hidden;
 }
 
 #__next {
-	@apply h-full;
+    @apply h-full;
+}
+
+#auth {
+    @apply bg-zinc-900 h-full overflow-x-hidden;
+    background-image: url("/images/hero.jpg");
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-position: center;
+    background-size: cover;
 }
 
 html {
-	@apply h-full;
+    @apply h-full;
 }
