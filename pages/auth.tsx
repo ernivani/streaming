@@ -8,65 +8,65 @@ import { FcGoogle } from "react-icons/fc";
 import Input from "@/components/Input";
 
 export async function getServerSideProps(context: NextPageContext) {
-	const session = await getSession(context);
+    const session = await getSession(context);
 
-	if (session) {
-		return {
-			redirect: {
-				destination: "/",
-				permanent: false,
-			},
-		};
-	}
+    if (session) {
+        return {
+            redirect: {
+                destination: "/",
+                permanent: false,
+            },
+        };
+    }
 
-	return {
-		props: {},
-	};
+    return {
+        props: {},
+    };
 }
 
 const Auth = () => {
-	const router = useRouter();
+    const router = useRouter();
 
-	const [email, setEmail] = useState("");
-	const [name, setName] = useState("");
-	const [password, setPassword] = useState("");
+    const [email, setEmail] = useState("");
+    const [name, setName] = useState("");
+    const [password, setPassword] = useState("");
 
-	const [variant, setVariant] = useState("login");
+    const [variant, setVariant] = useState("login");
 
-	const toggleVariant = useCallback(() => {
-		setVariant((currentVariant) =>
-			currentVariant === "login" ? "register" : "login"
-		);
-	}, []);
+    const toggleVariant = useCallback(() => {
+        setVariant((currentVariant) =>
+            currentVariant === "login" ? "register" : "login"
+        );
+    }, []);
 
-	const login = useCallback(async () => {
-		try {
-			await signIn("credentials", {
-				email,
-				password,
-				redirect: false,
-				callbackUrl: "/",
-			});
+    const login = useCallback(async () => {
+        try {
+            await signIn("credentials", {
+                email,
+                password,
+                redirect: false,
+                callbackUrl: "/",
+            });
 
-			router.push("/profiles");
-		} catch (error) {
-			console.log(error);
-		}
-	}, [email, password, router]);
+            router.push("/profiles");
+        } catch (error) {
+            console.log(error);
+        }
+    }, [email, password, router]);
 
-	const register = useCallback(async () => {
-		try {
-			await axios.post("/api/register", {
-				email,
-				name,
-				password,
-			});
+    const register = useCallback(async () => {
+        try {
+            await axios.post("/api/register", {
+                email,
+                name,
+                password,
+            });
 
-			login();
-		} catch (error) {
-			console.log(error);
-		}
-	}, [email, name, password, login]);
+            login();
+        } catch (error) {
+            console.log(error);
+        }
+    }, [email, name, password, login]);
 
 	return (
 		<div className="relative h-full w-full bg-[url('/images/hero.jpg')] bg-no-repeat bg-center bg-fixed bg-cover">

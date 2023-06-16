@@ -102,7 +102,7 @@ export const authOptions: AuthOptions = {
 
             // If no profile exists, create a new one
             if (!userProfile) {
-                userProfile = await prismadb.profile.create({
+                userProfile: userProfile = await prismadb.profile.create({
                     data: {
                         name: accountUser.user.name,
                         image: "",

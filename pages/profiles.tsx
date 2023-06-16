@@ -3,15 +3,16 @@ import { getSession, useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useCallback } from "react";
 import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 
 import useCurrentUser from "@/hooks/useCurrentUser";
 import useCurrentProfile from "@/hooks/useCurrentProfile";
 
 const images = [
-	"/images/default-blue.png",
-	"/images/default-red.png",
-	"/images/default-slate.png",
-	"/images/default-green.png",
+    "/images/default-blue.png",
+    "/images/default-red.png",
+    "/images/default-slate.png",
+    "/images/default-green.png",
 ];
 
 interface UserCardProps {
@@ -25,20 +26,20 @@ interface Profile {
 	image: string;
 }
 export async function getServerSideProps(context: NextPageContext) {
-	const session = await getSession(context);
+    const session = await getSession(context);
 
-	if (!session) {
-		return {
-			redirect: {
-				destination: "/auth",
-				permanent: false,
-			},
-		};
-	}
+    if (!session) {
+        return {
+            redirect: {
+                destination: "/auth",
+                permanent: false,
+            },
+        };
+    }
 
-	return {
-		props: {},
-	};
+    return {
+        props: {},
+    };
 }
 
 const UserCard: React.FC<UserCardProps> = ({ name, image }) => {
@@ -58,30 +59,33 @@ const UserCard: React.FC<UserCardProps> = ({ name, image }) => {
 		}
 	}, [name, image]);
 
-	return (
-		<div className="group flex-row w-44 mx-auto">
-			<div className="w-44 h-44 rounded-md flex items-center justify-center border-2 border-transparent group-hover:cursor-pointer group-hover:border-white overflow-hidden">
-				<img
-					draggable={false}
-					className="w-max h-max object-contain"
-					src={imgSrc}
-					alt=""
-				/>
-			</div>
-			<div className="mt-4 text-gray-400 text-2xl text-center group-hover:text-white">
-				{name}
-			</div>
-		</div>
-	);
+    useEffect(() => {
+        setImgSrc(images[Math.floor(Math.random() * 4)]);
+    }, []);
+    return (
+        <div className="group flex-row w-44 mx-auto">
+            <div className="w-44 h-44 rounded-md flex items-center justify-center border-2 border-transparent group-hover:cursor-pointer group-hover:border-white overflow-hidden">
+                <img
+                    draggable={false}
+                    className="w-max h-max object-contain"
+                    src={imgSrc}
+                    alt=""
+                />
+            </div>
+            <div className="mt-4 text-gray-400 text-2xl text-center group-hover:text-white">
+                {name}
+            </div>
+        </div>
+    );
 };
 
 const App = () => {
 	const router = useRouter();
 	const { data: currentProfiles } = useCurrentProfile();
 
-	const selectProfile = useCallback(() => {
-		router.push("/");
-	}, [router]);
+    const selectProfile = useCallback(() => {
+        router.push("/");
+    }, [router]);
 
 	if (!currentProfiles) {
 		return null;

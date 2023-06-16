@@ -12,8 +12,8 @@ import {
 } from "react-icons/fi";
 
 interface VideoPlayerProps {
-	src: string;
-	router: any;
+    src: string;
+    router: any;
 }
 
 const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, router }) => {
