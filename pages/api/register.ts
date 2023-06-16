@@ -35,6 +35,26 @@ export default async function handler(
 			},
 		});
 
+		// Check if user creation was successful
+		if (!user) {
+			throw new Error("User creation failed.");
+		}
+
+		// Create a profile for the new user
+		const profile = await prismadb.profile.create({
+			data: {
+				name,
+				image: "",
+				userId: user.id,
+			},
+		});
+
+		// Check if profile creation was successful
+		if (!profile) {
+			throw new Error("Profile creation failed.");
+		}
+
+		// Return both user and profile in the response
 		return res.status(200).json(user);
 	} catch (error) {
 		return res
