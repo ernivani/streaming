@@ -8,10 +8,6 @@ import prismadb from "@/libs/prismadb";
 
 export const authOptions: AuthOptions = {
 	providers: [
-		GithubProvider({
-			clientId: process.env.GITHUB_ID || "",
-			clientSecret: process.env.GITHUB_SECRET || "",
-		}),
 		GoogleProvider({
 			clientId: process.env.GOOGLE_CLIENT_ID || "",
 			clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
@@ -67,6 +63,58 @@ export const authOptions: AuthOptions = {
 		secret: process.env.NEXTAUTH_JWT_SECRET,
 	},
 	secret: process.env.NEXTAUTH_SECRET,
+	callbacks: {
+		async signIn({ user, account, profile, email, credentials }) {
+			const isAllowedToSignIn = true;
+
+			if (!profile) {
+				return true;
+			}
+
+			// check if the user have profile and if it does not have we create one
+			console.log(profile);
+
+			// get the user id in account with providerAccountId
+			const accountUser = await prismadb.account.findFirst({
+				where: {
+					provider: account?.provider,
+					providerAccountId: account?.providerAccountId,
+				},
+				include: {
+					user: true,
+				},
+			});
+
+			if (!accountUser) {
+				throw new Error(
+					"No account found for this provider and provider account ID"
+				);
+			}
+
+			console.log(accountUser.user.id); // This will log the user id
+
+			// Check if a profile already exists for the user
+			let userProfile = await prismadb.profile.findUnique({
+				where: {
+					userId: accountUser.user.id,
+				},
+			});
+
+			// If no profile exists, create a new one
+			if (!userProfile) {
+				userProfile = await prismadb.profile.create({
+					data: {
+						name: accountUser.user.name,
+						image: "",
+						userId: accountUser.user.id,
+					},
+				});
+			}
+
+			console.log(userProfile); // This will log the user profile
+			return isAllowedToSignIn;
+		},
+	},
 };
 
 export default NextAuth(authOptions);
