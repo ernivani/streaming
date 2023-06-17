@@ -94,7 +94,7 @@ export const authOptions: AuthOptions = {
             console.log(accountUser.user.id); // This will log the user id
 
             // Check if a profile already exists for the user
-            let userProfile = await prismadb.profile.findMany({
+            let userProfile:any = await prismadb.profile.findMany({
                 where: {
                     userId: accountUser.user.id,
                 },

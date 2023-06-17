@@ -4,6 +4,8 @@ import React from "react";
 import useCurrentUser from "@/hooks/useCurrentUser";
 import useCurrentProfile from "@/hooks/useCurrentProfile";
 
+import Image from "next/image";
+
 interface AccountMenuProps {
 	visible?: boolean;
 }
@@ -21,10 +23,7 @@ const AccountMenu: React.FC<AccountMenuProps> = ({ visible }) => {
 
 	const [imgSrc, setImgSrc] = React.useState("");
 
-
-
 	React.useEffect(() => {
-
 		if (!currentUser) {
 			return;
 		}
@@ -50,13 +49,15 @@ const AccountMenu: React.FC<AccountMenuProps> = ({ visible }) => {
 		return null;
 	}
 
-
 	return (
 		<div className="bg-black w-56 absolute top-14 right-0 py-5 flex-col border-2 border-gray-800 flex">
 			<div className="flex flex-col gap-3">
-				{currentProfiles.map((profile) => (
-					<div className="px-3 group/item flex flex-row gap-3 items-center w-full" key={profile.id}>
-						<img
+				{currentProfiles.map((profile : any) => (
+					<div
+						className="px-3 group/item flex flex-row gap-3 items-center w-full"
+						key={profile.id}
+					>
+						<Image
 							className="w-8 rounded-md"
 							src={profile.image || imgSrc}
 							alt=""
